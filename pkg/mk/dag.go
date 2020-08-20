@@ -7,7 +7,7 @@ import (
 )
 
 type DAG struct {
-	graph map[Target]map[Target]bool
+	graph  map[Target]map[Target]bool
 	Logger *zerolog.Logger
 }
 
@@ -33,7 +33,10 @@ func (g *DAG) reverse() *DAG {
 	n.Logger = g.Logger
 	for target, prereq := range g.graph {
 		for p := range prereq {
-			n.AddTarget(p, []Target{ target })
+			n.AddTarget(p, []Target{target})
+		}
+		if len(prereq) == 0 {
+			n.AddTarget(target, nil)
 		}
 	}
 	return n
@@ -98,7 +101,6 @@ func (g *DAG) WalkDown(ctx context.Context, nWorkers int, fn func(context.Contex
 	next := make(chan Target, len(g.graph))
 	complete := make(chan Target)
 
-	// Initialize
 	gr.Go(func() error {
 		for u, v := range inDegree {
 			if v != 0 {
@@ -112,24 +114,8 @@ func (g *DAG) WalkDown(ctx context.Context, nWorkers int, fn func(context.Contex
 			}
 		}
 		g.Logger.Debug().Msg("initial targets queued")
-		return nil
-	})
 
-	gr.Go(func() error {
-		for u := range complete {
-			g.Logger.Debug().Str("target", u.Name()).Msg("target complete")
-			for v := range g.graph[u] {
-				inDegree[v]--
-				g.Logger.Debug().Str("prevTarget", u.Name()).Str("target", v.Name()).Int("degree", inDegree[v]).Msg("reduce degree")
-				if inDegree[v] == 0 {
-					select {
-					case <-ctx.Done():
-						return ctx.Err()
-					case next <- v:
-						g.Logger.Debug().Str("prevTarget", u.Name()).Str("target", v.Name()).Msg("queuing next")
-					}
-				}
-			}
+		for {
 			// Check if done
 			done := true
 			for k := range inDegree {
@@ -141,6 +127,25 @@ func (g *DAG) WalkDown(ctx context.Context, nWorkers int, fn func(context.Contex
 				g.Logger.Debug().Msg("closing next")
 				close(next)
 				break
+			}
+
+			select {
+			case u := <-complete:
+				g.Logger.Debug().Str("target", u.Name()).Msg("target complete")
+				for v := range g.graph[u] {
+					inDegree[v]--
+					g.Logger.Debug().Str("prevTarget", u.Name()).Str("target", v.Name()).Int("degree", inDegree[v]).Msg("reduce degree")
+					if inDegree[v] == 0 {
+						select {
+						case <-ctx.Done():
+							return ctx.Err()
+						case next <- v:
+							g.Logger.Debug().Str("prevTarget", u.Name()).Str("target", v.Name()).Msg("queuing next")
+						}
+					}
+				}
+			case <-ctx.Done():
+				return ctx.Err()
 			}
 		}
 		for _ = range complete {
@@ -157,7 +162,7 @@ func (g *DAG) WalkDown(ctx context.Context, nWorkers int, fn func(context.Contex
 				select {
 				case <-wctx.Done():
 					return wctx.Err()
-				case l, ok := <- next:
+				case l, ok := <-next:
 					if !ok {
 						wl.Debug().Msg("worker exiting")
 						return nil

@@ -12,8 +12,8 @@ var DefaultShell = []string{"/usr/bin/env", "sh", "-c"}
 
 type ShellExecutor struct {
 	ShellCmd []string
-	Dir string
-	Env []string
+	Dir      string
+	Env      []string
 }
 
 func (s *ShellExecutor) shell() []string {

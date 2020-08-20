@@ -10,21 +10,21 @@ import (
 )
 
 type tplContext struct {
-	Target mk.Target
-	Matches map[string]string
+	Target        mk.Target
+	Matches       map[string]string
 	Prerequisites []mk.Target
 }
 
 type regexRule struct {
-	mkfile *Makefile
-	regexp *regexp.Regexp
+	mkfile        *Makefile
+	regexp        *regexp.Regexp
 	prerequisites []*template.Template
-	recipe []*template.Template
+	recipe        []*template.Template
 }
 
 type invocation struct {
-	rule *regexRule
-	target mk.Target
+	rule    *regexRule
+	target  mk.Target
 	prereqs []mk.Target
 	matches map[string]string
 }
@@ -34,15 +34,17 @@ func (i *invocation) Prerequisites() []mk.Target {
 }
 
 func (i *invocation) Execute(exec mk.Executor, ctx context.Context) error {
-	se, ok := exec.(interface{ RunShell(ctx context.Context, cmd string) error })
+	se, ok := exec.(interface {
+		RunShell(ctx context.Context, cmd string) error
+	})
 	if !ok {
 		panic("rule needs shell execution")
 	}
 	log := zerolog.Ctx(ctx)
 	tplCtx := &tplContext{
-		Target: i.target,
+		Target:        i.target,
 		Prerequisites: i.prereqs,
-		Matches: i.matches,
+		Matches:       i.matches,
 	}
 	for k := range i.rule.recipe {
 		if ctx.Err() != nil {
@@ -61,6 +63,10 @@ func (i *invocation) Execute(exec mk.Executor, ctx context.Context) error {
 }
 
 func (r *regexRule) Match(target mk.Target) (mk.MatchQuality, mk.Invocation, error) {
+	ft, ok := target.(*mk.FileTarget)
+	if !ok {
+		panic("rule only supports file targets")
+	}
 	match := r.regexp.FindStringSubmatch(target.Name())
 	if match == nil {
 		return mk.NoMatch, nil, nil
@@ -72,7 +78,7 @@ func (r *regexRule) Match(target mk.Target) (mk.MatchQuality, mk.Invocation, err
 		}
 	}
 	ctx := tplContext{
-		Target: target,
+		Target:  target,
 		Matches: submatches,
 	}
 	prereqs := make([]mk.Target, len(r.prerequisites))
@@ -81,7 +87,7 @@ func (r *regexRule) Match(target mk.Target) (mk.MatchQuality, mk.Invocation, err
 		if err := ps.Execute(buf, ctx); err != nil {
 			return mk.MatchImplicit, nil, err
 		}
-		prereqs[i] = &mk.FileTarget{Path: buf.String()}
+		prereqs[i] = &mk.FileTarget{Dir: ft.Dir, Path: buf.String()}
 	}
 	return mk.MatchImplicit, &invocation{
 		rule:    r,

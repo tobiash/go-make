@@ -11,15 +11,15 @@ import (
 	"sync"
 )
 
-type yamlStorageFile struct {
-	path string
-	perm os.FileMode
+type YamlSumStorageFile struct {
+	Path string
+	Perm os.FileMode
 }
 
 type yamlStorageFileTransaction struct {
-	sum map[string]string
+	sum             map[string]string
 	dirty, readOnly bool
-	lock sync.Mutex
+	lock            sync.Mutex
 }
 
 func (y *yamlStorageFileTransaction) ReadValue(ctx context.Context, key string) (value string, err error) {
@@ -51,10 +51,11 @@ func (y *yamlStorageFileTransaction) BufferWrites(writes []storage.Write) error 
 	return nil
 }
 
-func (j *yamlStorageFile) read() (*yamlStorageFileTransaction, error) {
+func (j *YamlSumStorageFile) read() (*yamlStorageFileTransaction, error) {
 	var tr yamlStorageFileTransaction
-	file, err := os.Open(j.path)
+	file, err := os.Open(j.Path)
 	if os.IsNotExist(err) {
+		tr.sum = make(map[string]string)
 		return &tr, nil
 	} else if err != nil {
 		return nil, err
@@ -72,7 +73,7 @@ func (j *yamlStorageFile) read() (*yamlStorageFileTransaction, error) {
 	return &tr, nil
 }
 
-func (j *yamlStorageFile) ReadOnly(ctx context.Context, f func(context.Context, storage.Transaction) error) error {
+func (j *YamlSumStorageFile) ReadOnly(ctx context.Context, f func(context.Context, storage.Transaction) error) error {
 	tr, err := j.read()
 	if err != nil {
 		return err
@@ -80,7 +81,7 @@ func (j *yamlStorageFile) ReadOnly(ctx context.Context, f func(context.Context, 
 	return f(ctx, tr)
 }
 
-func (j *yamlStorageFile) ReadWrite(ctx context.Context, f func(context.Context, storage.Transaction) error) error {
+func (j *YamlSumStorageFile) ReadWrite(ctx context.Context, f func(context.Context, storage.Transaction) error) error {
 	tr, err := j.read()
 	if err != nil {
 		return err
@@ -94,11 +95,11 @@ func (j *yamlStorageFile) ReadWrite(ctx context.Context, f func(context.Context,
 	if !tr.dirty {
 		return nil
 	}
-	dir := filepath.Dir(j.path)
+	dir := filepath.Dir(j.Path)
 	if dir != "" {
 		_ = os.MkdirAll(dir, 0700)
 	}
-	file, err := os.OpenFile(j.path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, j.perm)
+	file, err := os.OpenFile(j.Path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, j.Perm)
 	if err != nil {
 		return err
 	}

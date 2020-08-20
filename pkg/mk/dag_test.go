@@ -11,16 +11,16 @@ type ttarget struct {
 	name string
 }
 
+func (tt *ttarget) Check(digest string) (TargetStatus, error) {
+	panic("implement me")
+}
+
 func (tt *ttarget) Name() string {
 	return tt.name
 }
 
 func (tt *ttarget) Equal(t Target) bool {
 	return t.Name() == tt.name
-}
-
-func (tt *ttarget) Digest() (digest string, exists bool, err error) {
-	panic("implement me")
 }
 
 func TestDAGSimpleWalk(t *testing.T) {

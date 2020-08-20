@@ -21,7 +21,7 @@ rules:
 `
 	var mkFile Makefile
 	require.NoError(t, yaml.NewDecoder(strings.NewReader(testYaml)).Decode(&mkFile))
-	assert.Equal(t, []string { "/usr/bin/env", "bash", "-c"}, mkFile.Shell)
+	assert.Equal(t, []string{"/usr/bin/env", "bash", "-c"}, mkFile.Shell)
 	assert.Len(t, mkFile.Rules, 1)
 	rules, err := mkFile.BuildRules()
 	require.NoError(t, err)

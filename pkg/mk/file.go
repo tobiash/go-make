@@ -13,7 +13,8 @@ import (
 )
 
 // A target on the filesystem (directory or file)
-type FileTarget struct{
+type FileTarget struct {
+	Dir string
 	Path string
 }
 
@@ -30,24 +31,25 @@ func (f *FileTarget) Name() string {
 func (f *FileTarget) Check(digest string) (TargetStatus, error) {
 	cDigest, exists, err := f.digest()
 	return TargetStatus{
-		UpToDate: digest == cDigest && exists,
-		Exists: exists,
+		UpToDate:      (digest == "" || digest == cDigest) && exists,
+		Exists:        exists,
 		CurrentDigest: cDigest,
 	}, err
 }
 
 func (f *FileTarget) digest() (string, bool, error) {
-	fi, err := os.Stat(f.Path)
+	p := filepath.Join(f.Dir, f.Path)
+	fi, err := os.Stat(p)
 	if os.IsNotExist(err) {
 		return "", false, nil
 	} else if err != nil {
 		return "", false, errors.Wrapf(err, "cannot digest %s", f.Path)
 	}
 	if fi.IsDir() {
-		d, err := dirhash.HashDir(f.Path, "", dirhash.DefaultHash)
+		d, err := dirhash.HashDir(p, "", dirhash.DefaultHash)
 		return d, true, err
 	} else {
-		h, err := fileHash(f.Path)
+		h, err := fileHash(p)
 		if err != nil {
 			return "", true, err
 		}

@@ -21,7 +21,7 @@ func TestIntegrationShellMake(t *testing.T) {
 	ctx := log.Logger.WithContext(context.TODO())
 	defer func() { _ = os.RemoveAll(d) }()
 	se := &shell.ShellExecutor{
-		Dir:     d,
+		Dir: d,
 	}
 	mkFileYaml := `
 rules:

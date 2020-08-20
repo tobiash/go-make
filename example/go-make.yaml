@@ -1,0 +1,4 @@
+rules:
+  - pattern: "a.(?P<first>.*)"
+    recipe:
+      - echo "hello world" >> {{ .Target.Path }}

@@ -43,4 +43,3 @@ recipe:
 	assert.Len(t, inv.Prerequisites(), 1)
 	assert.Equal(t, &mk.FileTarget{Path: "foo.json"}, inv.Prerequisites()[0])
 }
-

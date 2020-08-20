@@ -88,10 +88,10 @@ func (m *Make) Make(executor Executor, ctx context.Context, targets ...Target) e
 				}
 				status, err = target.Check(digest)
 				if err != nil {
-					return errors.Wrapf(err, "error checking status of target '%s' post-exec")
+					return errors.Wrapf(err, "error checking status of target '%s' post-exec", target.Name())
 				}
 				if err = sumTr.BufferWrites([]storage.Write{{
-					Key: target.Name(),
+					Key:   target.Name(),
 					Value: status.CurrentDigest,
 				}}); err != nil {
 					return err
@@ -142,7 +142,7 @@ func (m *Make) ruleFor(t Target) (Rule, Invocation, error) {
 		if match, inv, err := m.Rules[r].Match(t); err != nil {
 			return nil, nil, err
 		} else if match != NoMatch {
-				if match > matchQ {
+			if match > matchQ {
 				matchQ = match
 				rule = m.Rules[r]
 				invocation = inv
