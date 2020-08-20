@@ -1,6 +1,8 @@
 # go-make : make-like build pipelines for go
 
-## Overview [![PkgGoDev](https://pkg.go.dev/badge/tobiash/go-make)](https://pkg.go.dev/tobiash/go-make) [![Code Climate](https://codeclimate.com/github/tobiash/go-make/badges/gpa.svg)](https://codeclimate.com/github/tobiash/go-make) [![Go Report Card](https://goreportcard.com/badge/github.com/tobiash/go-make)](https://goreportcard.com/report/github.com/tobiash/go-make)
+## Overview
+[![PkgGoDev](https://pkg.go.dev/badge/tobiash/go-make)](https://pkg.go.dev/tobiash/go-make)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tobiash/go-make)](https://goreportcard.com/report/github.com/tobiash/go-make)
 
 Experimental implementation of a (GNU-) `make`-like build pipeline for Go. The goal here is not to recreate or replace `make`, but to leverage its patterns and semantics as a library. Therefore, the provided CLI command is more of a proof-of-concept.
 
