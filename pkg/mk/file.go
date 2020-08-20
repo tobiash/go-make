@@ -14,7 +14,7 @@ import (
 
 // A target on the filesystem (directory or file)
 type FileTarget struct {
-	Dir string
+	Dir  string
 	Path string
 }
 

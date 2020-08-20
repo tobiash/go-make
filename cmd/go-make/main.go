@@ -25,35 +25,35 @@ func main() {
 				return err
 			}
 			m := mk.Make{
-				Sum:  &mk.YamlSumStorageFile{Path: filepath.Join(c.Path("directory"), c.Path("sumfile")), Perm: 0644 },
+				Sum:   &mk.YamlSumStorageFile{Path: filepath.Join(c.Path("directory"), c.Path("sumfile")), Perm: 0644},
 				Rules: rules,
 			}
 			targets := make([]mk.Target, c.NArg())
 			for i := 0; i < c.Args().Len(); i++ {
-				targets[i] = &mk.FileTarget{Dir: c.Path("directory"), Path: c.Args().Get(i) }
+				targets[i] = &mk.FileTarget{Dir: c.Path("directory"), Path: c.Args().Get(i)}
 			}
 
 			ctx := log.Logger.WithContext(context.Background())
 
 			return m.Make(&shell.ShellExecutor{
-				Dir:     c.Path("directory"),
+				Dir: c.Path("directory"),
 			}, ctx, targets...)
 		},
 		Flags: []cli.Flag{
 			&cli.PathFlag{
-				Name: "directory",
+				Name:    "directory",
 				Aliases: []string{"C"},
-				Value: wd,
+				Value:   wd,
 			},
 			&cli.PathFlag{
-				Name: "file",
+				Name:    "file",
 				Aliases: []string{"makefile", "f"},
-				Value: "go-make.yaml",
+				Value:   "go-make.yaml",
 			},
 			&cli.PathFlag{
-				Name: "sumfile",
+				Name:    "sumfile",
 				Aliases: []string{"s"},
-				Value: "go-make.sum",
+				Value:   "go-make.sum",
 			},
 		},
 	}
@@ -64,7 +64,7 @@ func main() {
 	}
 }
 
-func Makefile (c *cli.Context) (*yamlfe.Makefile, error) {
+func Makefile(c *cli.Context) (*yamlfe.Makefile, error) {
 	mkfile := yamlfe.Makefile{}
 	f, err := os.Open(filepath.Join(c.Path("directory"), c.Path("file")))
 	if err != nil {
